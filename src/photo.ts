@@ -1,13 +1,26 @@
-// Dynamically import all photos from assets/photos directory
-const photoModules = import.meta.glob('/src/assets/photos/*', { eager: true }) as Record<string, { default: string }>
+// Photos are in public/photos/ so they're copied as-is during build
+// Load photos list - cached after first load
+let photosCache: string[] | null = null;
 
-// Extract photo URLs from the imported modules
-export const photos = Object.values(photoModules).map(module => module.default);
+async function loadPhotos(): Promise<string[]> {
+  if (photosCache) return photosCache;
+  
+  try {
+    const response = await fetch('/photos.json');
+    const filenames: string[] = await response.json();
+    photosCache = filenames.map(filename => `/photos/${encodeURIComponent(filename)}`);
+    return photosCache;
+  } catch (e) {
+    console.error('Failed to load photos list:', e);
+    return [];
+  }
+}
 
 // Get a random photo URL
-export function getRandomPhoto(): string {
+export async function getRandomPhoto(): Promise<string> {
+  const photos = await loadPhotos();
   if (photos.length === 0) {
-    throw new Error('No photos found in assets/photos directory');
+    throw new Error('No photos found');
   }
   return photos[Math.floor(Math.random() * photos.length)];
 }

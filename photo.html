@@ -15,7 +15,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Random Photo - Jack Horan" />
-    <meta name="twitter:description" content="A randomly selected photograph with EXIF metadata." />]
+    <meta name="twitter:description" content="A randomly selected photograph with EXIF metadata." />
 
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -23,8 +23,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Jack Horan" />
     <link rel="manifest" href="/site.webmanifest" />
-    
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="stylesheet" href="./src/photo.css" />
     <script type="module" src="/src/text.ts"></script>
   </head>
@@ -46,9 +44,13 @@
       
       const img = document.getElementById('random-photo');
       if (img) {
-        const photoUrl = getRandomPhoto();
-        img.src = photoUrl;
         img.setAttribute('aria-busy', 'true');
+        getRandomPhoto().then(photoUrl => {
+          img.src = photoUrl;
+        }).catch(e => {
+          console.error('Failed to get random photo:', e);
+          img.removeAttribute('aria-busy');
+        });
         
         // Load and display EXIF metadata when image loads
         img.addEventListener('load', async () => {
