@@ -18,6 +18,7 @@ export default defineConfig({
       input: {
         main: './index.html',
         photo: './photo.html',
+        404: './404.html'
       },
     },
   },
