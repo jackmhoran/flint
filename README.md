@@ -1,2 +1,0 @@
-# flint
-personal site!
