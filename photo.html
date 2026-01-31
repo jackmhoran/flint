@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Photo - Jack Horan</title>
+    <meta name="description" content="A randomly selected photograph with EXIF metadata." />
+    <meta name="author" content="Jack Horan" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Random Photo - Jack Horan" />
+    <meta property="og:description" content="A randomly selected photograph with EXIF metadata." />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Random Photo - Jack Horan" />
+    <meta name="twitter:description" content="A randomly selected photograph with EXIF metadata." />]
+
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Jack Horan" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="./src/photo.css" />
+    <script type="module" src="/src/text.ts"></script>
+  </head>
+  <body>
+    <div id="photo-container">
+        <header>
+          <h1>a photo i took</h1>
+        </header>
+      <div id="metadata" aria-live="polite" aria-atomic="true">
+        <div id="metadata-left" style="display: none;"></div>
+        <div id="metadata-right" style="display: none;"></div>
+      </div>
+      <img id="random-photo" alt="A randomly selected photograph" />
+      <a href="index.html">back to home</a>
+    </div>
+    <script type="module">
+      import { getRandomPhoto } from '/src/photo.ts';
+      import exifr from 'exifr';
+      
+      const img = document.getElementById('random-photo');
+      if (img) {
+        const photoUrl = getRandomPhoto();
+        img.src = photoUrl;
+        img.setAttribute('aria-busy', 'true');
+        
+        // Load and display EXIF metadata when image loads
+        img.addEventListener('load', async () => {
+          img.removeAttribute('aria-busy');
+          try {
+            const response = await fetch(photoUrl);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const blob = await response.blob();
+            const exifData = await exifr.parse(blob);
+            if (exifData) {
+              displayMetadata(exifData);
+            } else {
+              // Show message if no EXIF data found
+              const metadataDiv = document.getElementById('metadata');
+              if (metadataDiv) {
+                const metadataDivLeft = document.getElementById('metadata-left');
+                const metadataDivRight = document.getElementById('metadata-right');
+                if (metadataDivLeft && metadataDivRight) {
+                  metadataDivLeft.innerHTML = '<div class="metadata-item">No EXIF data available</div>';
+                  metadataDivRight.innerHTML = '';
+                  metadataDivLeft.style.display = 'block';
+                  metadataDivRight.style.display = 'block';
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Could not fetch file or parse EXIF:', e);
+            const metadataDiv = document.getElementById('metadata');
+            if (metadataDiv) {
+              const metadataDivLeft = document.getElementById('metadata-left');
+              const metadataDivRight = document.getElementById('metadata-right');
+              if (metadataDivLeft && metadataDivRight) {
+                metadataDivLeft.innerHTML = '<div class="metadata-item">Error loading metadata</div>';
+                metadataDivRight.innerHTML = '';
+                metadataDivLeft.style.display = 'block';
+                metadataDivRight.style.display = 'block';
+              }
+            }
+          }
+        });
+        
+        img.addEventListener('error', () => {
+          img.removeAttribute('aria-busy');
+          img.setAttribute('alt', 'Failed to load image');
+          const metadataDiv = document.getElementById('metadata');
+          if (metadataDiv) {
+            metadataDiv.innerHTML = '<div class="metadata-item">Error: Could not load image</div>';
+            metadataDiv.style.display = 'block';
+          }
+        });
+        
+        function parseDate(dateValue) {
+          if (!dateValue) return null;
+          try {
+            const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+            return isNaN(date.getTime()) ? null : date;
+          } catch {
+            return null;
+          }
+        }
+        
+        function formatDateOnly(dateValue) {
+          const date = parseDate(dateValue);
+          if (!date) return 'N/A';
+          const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+          return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
+        }
+        
+        function formatTimeOnly(dateValue) {
+          const date = parseDate(dateValue);
+          if (!date) return 'N/A';
+          let hours = date.getHours();
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12 || 12;
+          return `${hours}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        }
+        
+        function formatExposureTime(exposureTime) {
+          if (!exposureTime || exposureTime === 0) return 'N/A';
+          if (exposureTime >= 1) {
+            return `${exposureTime.toFixed(1)}s`;
+          }
+          return `1/${Math.round(1 / exposureTime)}`;
+        }
+        
+        function displayMetadata(exifData) {
+          const metadataDivLeft = document.getElementById('metadata-left');
+          const metadataDivRight = document.getElementById('metadata-right');
+          if (!metadataDivLeft || !metadataDivRight) return;
+          
+          const aperture = exifData.FNumber || exifData.ApertureValue;
+          const createDate = exifData.CreateDate || exifData.DateTimeOriginal;
+          const exposureComp = exifData.ExposureCompensation || exifData.ExposureBiasValue;
+          const exposureTime = exifData.ExposureTime || exifData.ShutterSpeedValue;
+          const flash = exifData.Flash;
+          const focalLength = exifData.FocalLength;
+          const iso = exifData.ISO;
+          const make = exifData.Make;
+          let model = exifData.Model;
+          
+          // Remove "Canon" from model name if present
+          if (model) {
+            model = model.replace(/\bCanon\b/gi, '').trim();
+            // Clean up any extra spaces
+            model = model.replace(/\s+/g, ' ');
+          }
+          
+          // Format aperture - handle both FNumber (direct) and ApertureValue (needs conversion)
+          let apertureValue = 'N/A';
+          if (aperture && aperture !== 0) {
+            if (exifData.FNumber) {
+              apertureValue = `f/${aperture.toFixed(1)}`;
+            } else if (exifData.ApertureValue) {
+              // ApertureValue is stored as APEX value, convert to f-number
+              apertureValue = `f/${Math.pow(2, aperture / 2).toFixed(1)}`;
+            }
+          }
+          
+          // Format flash - can be boolean, number (0/1), or object
+          let flashValue = 'N/A';
+          if (flash !== undefined && flash !== null) {
+            if (typeof flash === 'boolean') {
+              flashValue = flash ? 'yes' : 'no';
+            } else if (typeof flash === 'number') {
+              flashValue = flash > 0 ? 'yes' : 'no';
+            } else {
+              flashValue = 'yes';
+            }
+          }
+          
+          // Column 1: Date, Time, Model, Make
+          const column1 = [
+            { label: 'Date', value: formatDateOnly(createDate) },
+            { label: 'Time', value: formatTimeOnly(createDate) },
+            { label: 'Model', value: model || 'N/A' },
+            { label: 'Make', value: make || 'N/A' }
+          ];
+          
+          // Column 2: Aperture, Exposure Comp, Shutter Speed, Focal Length, ISO, Flash
+          const column2 = [
+            { label: 'Aperture', value: apertureValue },
+            { label: 'Exposure Comp', value: exposureComp != null ? `${exposureComp > 0 ? '+' : ''}${exposureComp.toFixed(1)}` : 'N/A' },
+            { label: 'Shutter Speed', value: formatExposureTime(exposureTime) },
+            { label: 'Focal Length', value: focalLength ? `${focalLength}mm` : 'N/A' },
+            { label: 'ISO', value: iso || 'N/A' },
+            { label: 'Flash', value: flashValue }
+          ];
+          
+          // Build HTML for two-column grid layout
+          let htmlLeft = `<div class="metadata-item"><a href="photo.html">next photo</a></div><div class="metadata-item"><br /></div>`;
+          let htmlRight = '';
+          const maxItems = Math.max(column1.length, column2.length);
+          
+          for (let i = 0; i < maxItems; i++) {
+            if (column1[i]) {
+              htmlLeft += `<div class="metadata-item">${column1[i].label}: ${column1[i].value}</div>`;
+            }
+            if (column2[i]) {
+              htmlRight += `<div class="metadata-item">${column2[i].label}: ${column2[i].value}</div>`;
+            }
+          }
+          
+          metadataDivLeft.innerHTML = htmlLeft;
+          metadataDivRight.innerHTML = htmlRight;
+          
+          metadataDivLeft.style.display = 'block';
+          metadataDivRight.style.display = 'block';
+        }
+      }
+    </script>
+  </body>
+</html>
