@@ -54,6 +54,7 @@
         // Load and display EXIF metadata when image loads
         img.addEventListener('load', async () => {
           img.removeAttribute('aria-busy');
+          const photoUrl = img.src; // Get the URL from the image element
           try {
             const response = await fetch(photoUrl);
             if (!response.ok) {
