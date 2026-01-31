@@ -172,15 +172,16 @@
             }
           }
           
-          // Format flash - can be boolean, number (0/1), or object
+          // Format flash - EXIF Flash is a bitmask where bit 0 (0x01) indicates flash fired
           let flashValue = 'N/A';
           if (flash !== undefined && flash !== null) {
             if (typeof flash === 'boolean') {
               flashValue = flash ? 'yes' : 'no';
             } else if (typeof flash === 'number') {
-              flashValue = flash > 0 ? 'yes' : 'no';
+              // Check bit 0 (0x01) to see if flash actually fired
+              flashValue = (flash & 0x01) === 1 ? 'yes' : 'no';
             } else {
-              flashValue = 'yes';
+              flashValue = 'no';
             }
           }
           
