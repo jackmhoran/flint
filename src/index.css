@@ -24,10 +24,11 @@ body{
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 a, p, h1, h2, h3, h4, h5, h6 {
+
   margin-block-start: 0rem;
   margin-block-end: 0rem;
   color: var(--ink);
@@ -38,8 +39,8 @@ a, p, h1, h2, h3, h4, h5, h6 {
 
 }
 h1 {
+  font-weight: 600;
   font-size: 0.75rem;
-  font-weight: 700;
 }
 a {
   line-height: 1.5rem;
