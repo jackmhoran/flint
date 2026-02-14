@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jack Horan</title>
+    <meta name="description" content="Full-stack software engineer based in New York City. I love trying new things and accessible design." />
+    <meta name="author" content="Jack Horan" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://jackhoran.dev/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jackhoran.dev/" />
+    <meta property="og:title" content="Jack Horan | Software Engineer" />
+    <meta property="og:description" content="Full-stack software engineer based in New York City. I love trying new things and accessible design." />
+    <meta property="og:image" content="https://jackhoran.dev/src/assets/avatar.png" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Jack Horan | Software Engineer" />
+    <meta name="twitter:description" content="Full-stack software engineer based in New York City. I love trying new things and accessible design." />
+
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Jack Horan" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <link rel="stylesheet" crossorigin href="/assets/worm-Bw6lkmwY.css">
+  </head>
+  <body>
+            <button id="begin-btn" onclick="begin()">begin</button>
+        <div id="a0" style="display: none;">
+        <p class="accent">INCOMING MESSAGE...</p>
+        <p class="accent">FROM: FBI DIRECTOR XXX XXXXXXXX (DECRYPTED)</p>
+        <p class="accent">SUBJECT: URGENT MISSION</p>
+        <p class="accent">DATE: 02/14/2026</p>
+        <p class="accent">TIME: 3 minutes ago</p>
+        <p class="accent">LOCATION: FBI HEADQUARTERS</p>
+        <p class="accent">TRANSMITTING NOW...</p>
+        <p>...</p>
+        <p>...</p>
+        <p>hello, worm...</p>
+        <p>...</p>
+        <p>the FBI needs your help</p>
+        <p>we have a VERY urgent mission for you</p>
+        <p>please help us</p>
+        <p>we need you to help us</p>
+        <p>we need you to help us</p>
+        <p>we need you to help us</p>
+        <p>you're the only one that can</p>
+        <p>...</p>
+        <p>...</p>
+        <button onclick="next()">next</button>
+        </div>
+        <div class="mission" id="a1">
+            <p>...</p>
+            <p>...</p>
+            <p>worm...</p>
+            <p>...</p>
+            <p>or should i say, DUCK?!?!?</p>
+            <p>...</p>
+            <p>we have reason to believe that our nation is in danger</p>
+            <p>a very dangerous danger</p>
+            <p>a danger that could destroy the entire world</p>
+            <p>a danger that could destroy the entire world</p>
+            <p>...</p>
+            <p>we suspect that a very dangerous enemy is plotting to take over the world</p>
+            <p>said enemy is a very dangerous enemy</p>
+            <p>said enemy is a very dangerous enemy</p>
+            <p>you do not have clearance to know more now</p>
+            <p>...</p>
+            <p>we suspect rfk jr is an operative of said enemy</p>
+            <p>he is a very dangerous bad man</p>
+            <p>he is a very dangerous bad guy</p>
+            <p>...</p>
+            <p>we need you to help us</p>  
+            <p>...</p>
+            <button onclick="next()">next</button>
+
+        </div>
+        <div class="mission" id="a2">
+            <p>...</p>
+            <p>...</p>
+            <p>worm (duck)...</p>
+            <p>...</p>
+            <p>only you can help us</p>
+            <p>your mission is as follows:</p>
+            <p>...</p>
+            <p>1. you must find rfk jr</p>
+            <p>2. you must infiltrate his lair</p>
+            <p>3. you must enter his mind</p>
+            <p>4. you must sabotage his head</p>
+            <p>5. so that he cannot think clearly</p>
+            <p>6. so that he cannot reason</p>
+            <p>7. so that he cannot plan</p>
+            <p>8. so that he cannot destroy the state</p>
+            <p>...</p>
+            <button onclick="next()">next</button>
+
+        </div>
+        <div class="mission" id="a3">
+            <p>...</p>
+            <p>...</p>
+            <p>duck (worm, as duck)...</p>
+            <p>...</p>
+            <p>there is nobody but you for this mission</p>
+            <p>...</p>
+            <p>do you accept?</p>
+            <button onclick="accept()">accept</button>
+            <button onclick="reject()">reject</button>
+
+        </div>
+        <div id="game-container" style="display: none;">
+            <canvas id="game-canvas"></canvas>
+            <div id="game-info">
+                <p>Score: <span id="score">0</span></p>
+                <p id="game-message">Press an arrow key to start</p>
+                <button id="play-again-btn" onclick="window.resetSnakeGame()" style="display: none;">Play Again</button>
+            </div>
+        </div>
+    <script>
+        let curr = 0;
+        const delay = 100;
+        const speed = 60;
+        
+        // Morse code sound generator
+        let audioContext = null;
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // Resume audio context if suspended (required after user gesture)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().catch(e => {
+                    console.log('Could not resume audio context:', e);
+                });
+            }
+        }
+        
+        function playMorseBeep() {
+            try {
+                initAudioContext();
+                // Only play if audio context is running
+                if (audioContext.state !== 'running') {
+                    return;
+                }
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 600; // Morse code frequency
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.05);
+            } catch (e) {
+                // Ignore audio errors
+                console.log('Could not play morse code sound:', e);
+            }
+        }
+        
+        function typeText(element, text) {
+            return new Promise((resolve) => {
+                element.textContent = '';
+                element.style.visibility = 'visible';
+                let i = 0;
+                const timer = setInterval(() => {
+                    if (i < text.length) {
+                        element.textContent += text[i];
+                        // Play morse code beep for each character (skip spaces)
+                        if (text[i] !== ' ' && text[i] !== '\n') {
+                            playMorseBeep();
+                        }
+                        i++;
+                    } else {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, speed);
+            });
+        }
+        
+        async function animateMission(missionDiv) {
+            // Get all direct children in DOM order
+            const children = Array.from(missionDiv.children);
+            const textElements = children.filter(el => el.tagName === 'P');
+            const buttons = children.filter(el => el.tagName === 'BUTTON');
+            
+            // Hide all text elements and buttons initially
+            textElements.forEach(el => {
+                el.style.visibility = 'hidden';
+                el.dataset.originalText = el.textContent;
+            });
+            buttons.forEach(btn => btn.style.visibility = 'hidden');
+            
+            // Animate each text element one at a time in DOM order
+            for (const el of textElements) {
+                await typeText(el, el.dataset.originalText);
+                await new Promise(resolve => setTimeout(resolve, delay)); // Delay between elements
+            }
+            
+            // Show buttons after all text is typed
+            buttons.forEach(btn => btn.style.visibility = 'visible');
+        }
+        
+        function next() {
+            // Initialize audio context on user interaction
+            initAudioContext();
+            
+            document.getElementById('a' + curr).style.display = 'none';
+            curr++;
+            const nextDiv = document.getElementById('a' + curr);
+            if (nextDiv) {
+                nextDiv.style.display = 'block';
+                // If it's a mission div, animate it
+                if (nextDiv.classList.contains('mission')) {
+                    animateMission(nextDiv);
+                }
+            }
+        }
+        
+        function begin() {
+            // Initialize audio context on user click
+            initAudioContext();
+            
+            // Hide begin button and show #a0
+            const beginContainer = document.getElementById('begin-btn');
+            const a0 = document.getElementById('a0');
+            if (beginContainer) {
+                beginContainer.style.display = 'none';
+            }
+            if (a0) {
+                a0.style.display = 'block';
+                // Start animation
+                animateMission(a0);
+            }
+        }
+        
+        // Animate mission divs when shown via next()
+        document.addEventListener('DOMContentLoaded', () => {
+            // Don't auto-start - wait for user to click begin
+        });
+        
+        function accept() {
+            document.getElementById('a' + curr).style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            startSnakeGame();
+        }
+        
+        function reject() {
+            // Handle rejection
+            alert('rejection is not an option. try again.');
+        }
+        
+        let gameState = {
+            snake: null,
+            dx: 0,
+            dy: 0,
+            food: null,
+            foodType: null, // 'rfk' or 'brain'
+            score: 0,
+            gameLoop: null,
+            canvas: null,
+            ctx: null,
+            scoreElement: null,
+            gridSize: 20,
+            tileCount: 20,
+            foodImg: null,
+            brainImg: null,
+            duckImg: null,
+            isGameActive: false,
+            waddleSounds: [],
+            quackSounds: []
+        };
+        
+        function startSnakeGame() {
+            // Stop any existing game
+            if (gameState.gameLoop) {
+                clearInterval(gameState.gameLoop);
+                gameState.gameLoop = null;
+            }
+            
+            const canvas = document.getElementById('game-canvas');
+            const ctx = canvas.getContext('2d');
+            const scoreElement = document.getElementById('score');
+            
+            // Set canvas size
+            gameState.gridSize = 20;
+            gameState.tileCount = 20;
+            canvas.width = gameState.gridSize * gameState.tileCount;
+            canvas.height = gameState.gridSize * gameState.tileCount;
+            
+            gameState.canvas = canvas;
+            gameState.ctx = ctx;
+            gameState.scoreElement = scoreElement;
+            gameState.isGameActive = false;
+            
+            // Load RFK image
+            gameState.foodImg = new Image();
+            gameState.foodImg.src = '/rfk.jpg';
+            
+            // Load brain image
+            gameState.brainImg = new Image();
+            gameState.brainImg.src = '/brain.png';
+            
+            // Load duck image for head
+            gameState.duckImg = new Image();
+            gameState.duckImg.src = '/duck.png';
+            // Redraw game once duck image loads
+            gameState.duckImg.addEventListener('load', () => {
+                drawGame();
+            });
+            
+            // Load audio files
+            gameState.waddleSounds = [
+                new Audio('/waddle1.wav'),
+                new Audio('/waddle2.wav'),
+                new Audio('/waddle3.wav'),
+                new Audio('/waddle4.wav')
+            ];
+            gameState.quackSounds = [
+                new Audio('/quack1.wav'),
+                new Audio('/quack2.wav'),
+                new Audio('/quack3.wav'),
+                new Audio('/quack4.wav')
+            ];
+            
+            // Preload audio files
+            gameState.waddleSounds.forEach(audio => {
+                audio.volume = 0.5;
+                audio.load();
+            });
+            gameState.quackSounds.forEach(audio => {
+                audio.volume = 0.5;
+                audio.load();
+            });
+            
+            
+            function drawGame() {
+                if (!gameState.ctx || !gameState.canvas || !gameState.snake || !gameState.food) {
+                    return;
+                }
+                
+                const { ctx, canvas, snake, food, gridSize, foodImg } = gameState;
+                // Clear canvas
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-game') || '#f1db9d';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw snake (all segments use duck.png)
+                if (snake && snake.length > 0) {
+                    snake.forEach((segment, index) => {
+                        const duckImg = gameState.duckImg;
+                        if (duckImg && duckImg.complete) {
+                            const x = segment.x * gridSize;
+                            const y = segment.y * gridSize;
+                            const centerX = x + gridSize / 2;
+                            const centerY = y + gridSize / 2;
+                            
+                            ctx.save();
+                            ctx.translate(centerX, centerY);
+                            
+                            // Apply transformations based on direction (only for head)
+                            if (index === 0) {
+                                // Default to left-facing if no direction set yet
+                                if (gameState.dx === 1) {
+                                    // Right: flip horizontally
+                                    ctx.scale(-1, 1);
+                                } else if (gameState.dy === -1) {
+                                    // Up: rotate 90 degrees clockwise
+                                    ctx.rotate(Math.PI / 2);
+                                } else if (gameState.dy === 1) {
+                                    // Down: rotate 90 degrees clockwise and flip
+                                    ctx.rotate(Math.PI / 2);
+                                    ctx.scale(-1, 1);
+                                }
+                                // Left (dx === -1) or no direction: no transformation (default facing left)
+                            } else {
+                                // Body segments: determine direction toward the segment in front (index - 1)
+                                // The duck should face the direction it's moving toward
+                                const nextSegment = snake[index - 1];
+                                const bodyDx = nextSegment.x - segment.x;
+                                const bodyDy = nextSegment.y - segment.y;
+                                
+                                // Use the same transformation logic as the head
+                                if (bodyDx === 1) {
+                                    // Moving toward right: flip horizontally
+                                    ctx.scale(-1, 1);
+                                } else if (bodyDy === -1) {
+                                    // Moving toward up: rotate 90 degrees clockwise (same as head)
+                                    ctx.rotate(Math.PI / 2);
+                                } else if (bodyDy === 1) {
+                                    // Moving toward down: rotate 90 degrees clockwise and flip (same as head)
+                                    ctx.rotate(Math.PI / 2);
+                                    ctx.scale(-1, 1);
+                                }
+                                // Moving toward left (bodyDx === -1) or no movement: no transformation (default facing left)
+                            }
+                            
+                            ctx.drawImage(duckImg, -gridSize / 2, -gridSize / 2, gridSize, gridSize);
+                            ctx.restore();
+                        } else {
+                            // Wait for duck image to load - don't draw fallback
+                            // The image will be drawn once it loads
+                        }
+                    });
+                }
+                
+                // Draw food (RFK or brain image)
+                const currentFoodImg = gameState.foodType === 'brain' ? gameState.brainImg : gameState.foodImg;
+                if (currentFoodImg && currentFoodImg.complete) {
+                    ctx.drawImage(currentFoodImg, food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+                } else {
+                    // Fallback if image not loaded
+                    ctx.fillStyle = gameState.foodType === 'brain' ? '#8B00FF' : '#ff0000';
+                    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+                }
+            }
+            
+            function playRandomWaddle() {
+                const sounds = gameState.waddleSounds;
+                if (sounds && sounds.length > 0) {
+                    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+                    randomSound.currentTime = 0; // Reset to start
+                    randomSound.play().catch(e => {
+                        // Ignore audio play errors (e.g., user hasn't interacted yet)
+                        console.log('Could not play waddle sound:', e);
+                    });
+                }
+            }
+            
+            function playRandomQuack() {
+                const sounds = gameState.quackSounds;
+                if (sounds && sounds.length > 0) {
+                    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+                    randomSound.currentTime = 0; // Reset to start
+                    randomSound.play().catch(e => {
+                        // Ignore audio play errors (e.g., user hasn't interacted yet)
+                        console.log('Could not play quack sound:', e);
+                    });
+                }
+            }
+            
+            function moveSnake() {
+                // Don't move if game is not active or no direction is set
+                if (!gameState.isGameActive || (gameState.dx === 0 && gameState.dy === 0)) {
+                    return;
+                }
+                
+                if (!gameState.snake || gameState.snake.length === 0) {
+                    return;
+                }
+                
+                const { snake, dx, dy, food, tileCount } = gameState;
+                const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+                
+                // Check wall collision
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                    gameOver();
+                    return;
+                }
+                
+                // Check self collision (skip first segment as it's the head we're moving from)
+                if (snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)) {
+                    gameOver();
+                    return;
+                }
+                
+                gameState.snake.unshift(head);
+                
+                // Check food collision
+                if (head.x === food.x && head.y === food.y) {
+                    // Play quack sound when food is eaten
+                    playRandomQuack();
+                    
+                    // Add points based on food type
+                    const points = gameState.foodType === 'brain' ? 5 : 1;
+                    gameState.score += points;
+                    gameState.scoreElement.textContent = gameState.score;
+                    
+                    // Generate new food (1/6 chance for brain, 5/6 chance for RFK)
+                    do {
+                        gameState.food = {
+                            x: Math.floor(Math.random() * tileCount),
+                            y: Math.floor(Math.random() * tileCount)
+                        };
+                        // Randomly choose food type (1 in 6 chance for brain)
+                        gameState.foodType = Math.random() < 1/6 ? 'brain' : 'rfk';
+                    } while (snake.some(segment => segment.x === gameState.food.x && segment.y === gameState.food.y));
+                } else {
+                    gameState.snake.pop();
+                }
+                
+                // Play waddle sound when snake moves
+                playRandomWaddle();
+                
+                drawGame();
+            }
+            
+            function gameOver() {
+                gameState.isGameActive = false;
+                if (gameState.gameLoop) {
+                    clearInterval(gameState.gameLoop);
+                    gameState.gameLoop = null;
+                }
+                
+                // Play random quack sound when game loses
+                playRandomQuack();
+                
+                const messageElement = document.getElementById('game-message');
+                const playAgainBtn = document.getElementById('play-again-btn');
+                if (messageElement) {
+                    messageElement.textContent = `Game Over! Final Score: ${gameState.score}`;
+                }
+                if (playAgainBtn) {
+                    playAgainBtn.style.display = 'block';
+                }
+            }
+            
+            function resetGame() {
+                // Stop any running game loop
+                gameState.isGameActive = false;
+                if (gameState.gameLoop) {
+                    clearInterval(gameState.gameLoop);
+                    gameState.gameLoop = null;
+                }
+                
+                // Reset all game state
+                gameState.snake = [{ x: 10, y: 10 }];
+                gameState.dx = 0;
+                gameState.dy = 0;
+                gameState.food = { x: 15, y: 15 };
+                gameState.foodType = Math.random() < 1/6 ? 'brain' : 'rfk'; // Random initial food type
+                gameState.score = 0;
+                
+                // Update UI
+                if (gameState.scoreElement) {
+                    gameState.scoreElement.textContent = gameState.score;
+                }
+                const messageElement = document.getElementById('game-message');
+                const playAgainBtn = document.getElementById('play-again-btn');
+                if (messageElement) {
+                    messageElement.textContent = 'Press an arrow key to start';
+                }
+                if (playAgainBtn) {
+                    playAgainBtn.style.display = 'none';
+                }
+                
+                // Redraw the game
+                drawGame();
+            }
+            
+            // Remove old keydown listener if it exists
+            document.removeEventListener('keydown', window.snakeKeyHandler);
+            
+            // Keyboard controls
+            window.snakeKeyHandler = (e) => {
+                // Only process arrow keys
+                if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    return;
+                }
+                
+                // Start the game if it's not active
+                if (!gameState.isGameActive) {
+                    gameState.isGameActive = true;
+                    const messageElement = document.getElementById('game-message');
+                    if (messageElement) {
+                        messageElement.textContent = 'Use arrow keys to control the worm';
+                    }
+                    // Start the game loop
+                    if (!gameState.gameLoop) {
+                        gameState.gameLoop = setInterval(moveSnake, 150);
+                    }
+                }
+                
+                // Set direction
+                if (e.key === 'ArrowUp' && gameState.dy !== 1) {
+                    gameState.dx = 0;
+                    gameState.dy = -1;
+                } else if (e.key === 'ArrowDown' && gameState.dy !== -1) {
+                    gameState.dx = 0;
+                    gameState.dy = 1;
+                } else if (e.key === 'ArrowLeft' && gameState.dx !== 1) {
+                    gameState.dx = -1;
+                    gameState.dy = 0;
+                } else if (e.key === 'ArrowRight' && gameState.dx !== -1) {
+                    gameState.dx = 1;
+                    gameState.dy = 0;
+                }
+            };
+            
+            document.addEventListener('keydown', window.snakeKeyHandler);
+            
+            // Make resetGame globally accessible for the play again button
+            window.resetSnakeGame = resetGame;
+            
+            // Start game (draw initial state, but don't start moving)
+            resetGame();
+        }
+    </script>
+  </body>
+</html>
